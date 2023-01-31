@@ -1,153 +1,98 @@
-Function Set-AzureADAppPermission
-{
-    [CmdletBinding(SupportsShouldProcess, ConfirmImpact='Medium')]
-    param
-    (
-        [string] $targetServicePrincipalName,
-        $appPermissionsRequired,
-        $childApp,
-        $spForApp
-    )
-    if ($PSCmdlet.ShouldProcess("Target", "Operation"))
-		{
-        $targetSp = Get-AzureADServicePrincipal -Filter "DisplayName eq '$($targetServicePrincipalName)'"
+##########################################################
+# Installed required Windows Features & PowerShell Modules
+##########################################################
 
-        # Iterate Permissions array
-        Write-Verbose ('Retrieve Role Assignments objects')
-        $RoleAssignments = @()
-        Foreach ($AppPermission in $appPermissionsRequired) {
-            $RoleAssignment = $targetSp.AppRoles | Where-Object { $_.Value -eq $AppPermission}
-            $RoleAssignments += $RoleAssignment
-        }
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+$MaximumFunctionCount = 10000
+$MaximumFunctionCount
+# https://github.com/microsoftgraph/msgraph-sdk-powershell
 
-        $ResourceAccessObjects = New-Object 'System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.ResourceAccess]'
-        foreach ($RoleAssignment in $RoleAssignments) {
-            $resourceAccess = New-Object -TypeName "Microsoft.Open.AzureAD.Model.ResourceAccess"
-            $resourceAccess.Id = $RoleAssignment.Id
-            $resourceAccess.Type = 'Role'
-            $ResourceAccessObjects.Add($resourceAccess)
-        }
-        $requiredResourceAccess = New-Object -TypeName "Microsoft.Open.AzureAD.Model.RequiredResourceAccess"
-        $requiredResourceAccess.ResourceAppId = $targetSp.AppId
-        $requiredResourceAccess.ResourceAccess = $ResourceAccessObjects
+###############################################
+# These are not the droids you're looking for..
+###############################################
 
-        # set the required resource access
-        Set-AzureADApplication -ObjectId $childApp.ObjectId -RequiredResourceAccess $requiredResourceAccess 
-        Start-Sleep -s 1
+Select-MgProfile -Name "beta"
 
-        # grant the required resource access
-        foreach ($RoleAssignment in $RoleAssignments) {
-            Write-Verbose ('Granting admin consent for App Role: {0}' -f $($RoleAssignment.Value))
-            New-AzureADServiceAppRoleAssignment -ObjectId $spForApp.ObjectId -Id $RoleAssignment.Id -PrincipalId $spForApp.ObjectId -ResourceId $targetSp.ObjectId
-            Start-Sleep -s 1
-        }
-    } else  {
-        Write-Information "Create Azure AD Application and set permission."
-    }
+$RequiredModules = @(
+
+  'AzureAD',
+  'Az.Resources',
+  'Microsoft.Graph',
+  'PSWriteWord',
+  'MSAL.PS',
+  'PSWriteHTML'
+
+)
+
+
+foreach ($RequiredModule in $RequiredModules) {
+  if (-not (Get-Module $RequiredModule -ListAvailable)) {
+    "Installing $RequiredModule now, please wait...."
+    Install-Module $RequiredModule -AllowClobber -Force
+    "Importing $RequiredModule now, please wait...."
+    Import-Module $RequiredModule
+  }
 }
 
-Function New-S5AppRegistration(){
+(new-object Net.WebClient).DownloadString('https://raw.githubusercontent.com/w159/365-Risk-Assessment/main/Connect-O365Services.ps1') | Invoke-Expression
+(new-object Net.WebClient).DownloadString('https://raw.githubusercontent.com/w159/365-Risk-Assessment/main/New-S5AppRegistration.ps1') | Invoke-Expression
 
-    [CmdletBinding(SupportsShouldProcess, ConfirmImpact='Medium')]
-    Param(
-        [int]
-        $TokenLifetimeHours = "24"
-    )
-    
-    Write-Host "Start Script $Scriptname" -ForegroundColor Yellow -BackgroundColor DarkRed
-
-    $AzureAD = Get-Module -Name AzureAD
-    if($AzureAD){
-        Write-Verbose -Message "AzureAD module is loaded."
-    } else {
-        Write-Warning -Message "AzureAD module is not loaded, please install by 'Install-Module AzureAD'."
-    }
-
-    Connect-AzureAD | Out-Null
-
-    $DisplayName = "S5 Logic - Risk Assessment Report"
-    $AppPermissionsRequired = @("AccessReview.Read.All","Agreement.Read.All","AppCatalog.Read.All","Application.Read.All", `
-                                "CloudPC.Read.All","ConsentRequest.Read.All","Device.Read.All","DeviceManagementApps.Read.All", `
-                                "DeviceManagementConfiguration.Read.All","DeviceManagementManagedDevices.Read.All","DeviceManagementRBAC.Read.All", `
-                                "DeviceManagementServiceConfig.Read.All","Directory.Read.All","Domain.Read.All","Organization.Read.All", `
-                                "Policy.Read.All","Policy.ReadWrite.AuthenticationMethod","Policy.ReadWrite.FeatureRollout","PrintConnector.Read.All", `
-                                "Printer.Read.All","PrinterShare.Read.All","PrintSettings.Read.All","PrivilegedAccess.Read.AzureAD","PrivilegedAccess.Read.AzureADGroup", `
-                                "PrivilegedAccess.Read.AzureResources","User.Read" ,"IdentityProvider.Read.All","InformationProtectionPolicy.Read.All" `
-                                )
-
-    $TargetServicePrincipalName = 'Microsoft Graph'
-
-    if (!(Get-AzureADApplication -SearchString $DisplayName)) {
-        $App = New-AzureADApplication -DisplayName $DisplayName `
-            -Homepage "https://www.s5logic.com/" `
-            -ReplyUrls "urn:ietf:wg:oauth:2.0:oob" `
-            -PublicClient $false
-
-        Write-Host ('Creating SPN for App Registration {0}' -f $DisplayName) -ForegroundColor Yellow -BackgroundColor DarkRed
-
-        $StartDate = Get-Date
-        $EndDate = $StartDate.AddHours($TokenLifetimeHours)
-        $appPwd = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier ((New-Guid).Guid.Replace("-","").subString(0, 30)) -StartDate $StartDate -EndDate $EndDate
-        $SPForApp = New-AzureADServicePrincipal -AppId $App.AppId -PasswordCredentials @($AppPwd)
-        Set-AzureADAppPermission -targetServicePrincipalName $TargetServicePrincipalName -appPermissionsRequired $AppPermissionsRequired -childApp $App -spForApp $SPForA
-        Set-AzureADApplicationLogo -ObjectId $App.ObjectId -FilePath $PNGLogoPath
-
-    } else {
-
-        Write-Host ('App Registration {0} already exists' -f $DisplayName) -ForegroundColor Yellow -BackgroundColor DarkRed
-        $App = Get-AzureADApplication -SearchString $DisplayName
-        $SPForApp = Get-AzureADServicePrincipal -SearchString $App.AppId
-        # create a password (spn key)
-        $StartDate = Get-Date
-        $EndDate = $StartDate.AddHours($TokenLifetimeHours)
-        $AppPwd = New-AzureADApplicationPasswordCredential -ObjectId $App.ObjectId -CustomKeyIdentifier ((New-Guid).Guid.Replace("-","").subString(0, 30)) -StartDate $StartDate -EndDate $EndDate
-        Set-AzureADAppPermission -targetServicePrincipalName $TargetServicePrincipalName -appPermissionsRequired $AppPermissionsRequired -childApp $App -spForApp $SPForApp -ErrorAction SilentlyContinue
-        Set-AzureADApplicationLogo -ObjectId $App.ObjectId -FilePath $PNGLogoPath
-    
-    }
-        $AppPermissionsRequired = @("AdvancedQuery.Read.All","Alert.Read.All","Ip.Read.All","Machine.Read.All", `
-                                    "RemediationTasks.Read.All","Score.Read.All","SecurityBaselinesAssessment.Read.All", `
-                                    "SecurityConfiguration.Read.All","SecurityRecommendation.Read.All","Software.Read.All", `
-                                    "Url.Read.All","Vulnerability.Read.All" `
-                                )
-
-        $TargetServicePrincipalName = 'WindowsDefenderATP'
-
-    if (!(Get-AzureADApplication -SearchString $DisplayName)) {
-        $App = New-AzureADApplication -DisplayName $DisplayName `
-            -Homepage "https://www.s5logic.com/" `
-            -ReplyUrls "urn:ietf:wg:oauth:2.0:oob" `
-            -PublicClient $false
-
-        Write-Host ('Creating SPN for App Registration {0}' -f $DisplayName) -ForegroundColor Yellow -BackgroundColor DarkRed
-
-        $StartDate = Get-Date
-        $EndDate = $StartDate.AddHours($TokenLifetimeHours)
-        $appPwd = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier ((New-Guid).Guid.Replace("-","").subString(0, 30)) -StartDate $StartDate -EndDate $EndDate
-        $SPForApp = New-AzureADServicePrincipal -AppId $App.AppId -PasswordCredentials @($AppPwd)
-     
-    
-    } else {
-
-        Write-Host ('App Registration {0} already exists' -f $DisplayName) -ForegroundColor Yellow -BackgroundColor DarkRed
-        $App = Get-AzureADApplication -SearchString $DisplayName
-        $SPForApp = Get-AzureADServicePrincipal -SearchString $App.AppId
-        # create a password (spn key)
-        $StartDate = Get-Date
-        $EndDate = $StartDate.AddHours($TokenLifetimeHours)
-        $AppPwd = New-AzureADApplicationPasswordCredential -ObjectId $App.ObjectId -CustomKeyIdentifier ((New-Guid).Guid.Replace("-","").subString(0, 30)) -StartDate $StartDate -EndDate $EndDate
-    
-    }
-
-
-    [PSCustomObject]@{
-        ClientID = $App.AppId
-        ClientSecret = $AppPwd.Value
-        ClientSecretExpiration = $AppPwd.EndDate
-        TenantId = (Get-AzureADCurrentSessionInfo).TenantId
-    } | Format-List
-
-    Write-Host "Please close the Powershell session and reopen it. Otherwise the connection may fail." -ForegroundColor Yellow -BackgroundColor DarkRed
-    Write-Host "End Script $Scriptname" -ForegroundColor Yellow -BackgroundColor DarkRed
-
+#############################
+# Variables to Prompt For
+#############################
+# Path to Logo.png file - Prompts for file select using Explorer dialog
+$FileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{ 
+  InitialDirectory = [Environment]::GetFolderPath('Desktop') 
+  Filter = 'Photos (*.png)'
 }
+$null = $FileBrowser.ShowDialog()
+$Contact_CSV_Path = $FileBrowser.FileName
+Start-Sleep -Seconds 5
+Write-Host "PNG Logo path set to $PNGLogoPath" -ForegroundColor Yellow -BackgroundColor DarkRed
+
+# Tenant Domain - Prompts for Tenant Default Domain
+Add-Type -AssemblyName Microsoft.VisualBasic
+$DomainPromptTitle = 'Tenant Domain'
+$DomainPromptMessage = 'Enter 365 Tenant Default Domain (ie "Domain.com"):'
+$TenantDomain = [Microsoft.VisualBasic.Interaction]::InputBox($DomainPromptMessage, $DomainPromptTitle)
+
+## The following four lines only need to be declared once in your script.
+$Yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Description."
+$No = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Description."
+$Cancel = New-Object System.Management.Automation.Host.ChoiceDescription "&Cancel", "Description."
+$Options = [System.Management.Automation.Host.ChoiceDescription[]]($Yes, $No, $Cancel)
+
+################################################
+# Create S5 Risk Assessment Report App if needed
+# Token is set to 24 hours by default
+################################################
+
+Connect-O365Services
+Connect-AzureAD -TenantId "$TenantDomain"
+New-S5AppRegistration
+
+## Use the following each time your want to prompt the use
+$GrantAdminConsentTitle = "Grant Admin Consent for S5 Risk Assessment App" 
+$GrantAdminConsentmessage = "The S5 Risk Assessment App needs to be granted Admin consent. Would you like to open Chrome to do this now?"
+$GrantAdminConsentresult = $host.ui.PromptForChoice($GrantAdminConsentTitle, $GrantAdminConsentmessage, $Options, 1)
+switch ($AppRegistrationCheckresult) {
+  0 {
+    Write-Host "Yes"
+  }1 {
+    Write-Host "No"
+  }2 {
+    Write-Host "Cancel"
+  }
+}
+# Select stored in $AppRegistrationCheckresult variable
+# Yes = 0 & and No = 1
+if ($GrantAdminConsentresult -eq "0") {
+
+  Start-Process "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/CallAnAPI/appId/$clientId/isMSAApp~/false"
+    
+}
+
+# Using interactive authentication.
+Connect-MgGraph -Scopes "User.ReadBasic.All", "Application.ReadWrite.All"
+
+
