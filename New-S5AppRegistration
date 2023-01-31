@@ -106,6 +106,44 @@ Function New-S5AppRegistration(){
         Set-AzureADApplicationLogo -ObjectId $App.ObjectId -FilePath $PNGLogoPath
     
     }
+        $AppPermissionsRequired = @("AdvancedQuery.Read.All","Alert.Read.All","Ip.Read.All","Machine.Read.All", `
+                                    "RemediationTasks.Read.All","Score.Read.All","SecurityBaselinesAssessment.Read.All", `
+                                    "SecurityConfiguration.Read.All","SecurityRecommendation.Read.All","Software.Read.All", `
+                                    "Url.Read.All","Vulnerability.Read.All" `
+                                )
+
+        $TargetServicePrincipalName = 'WindowsDefenderATP'
+
+    if (!(Get-AzureADApplication -SearchString $DisplayName)) {
+        $App = New-AzureADApplication -DisplayName $DisplayName `
+            -Homepage "https://www.s5logic.com/" `
+            -ReplyUrls "urn:ietf:wg:oauth:2.0:oob" `
+            -PublicClient $false
+
+        Write-Debug ('Creating SPN for App Registration {0}' -f $DisplayName)
+
+        $StartDate = Get-Date
+        $EndDate = $StartDate.AddDays($TokenLifetimeDays)
+        $appPwd = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier ((New-Guid).Guid.Replace("-","").subString(0, 30)) -StartDate $StartDate -EndDate $EndDate
+
+        $SPForApp = New-AzureADServicePrincipal -AppId $App.AppId -PasswordCredentials @($AppPwd)
+        Set-AzureADAppPermission -targetServicePrincipalName $TargetServicePrincipalName -appPermissionsRequired $AppPermissionsRequired -childApp $App -spForApp $SPForApp
+        Set-AzureADApplicationLogo -ObjectId $App.ObjectId -FilePath $PNGLogoPath
+    
+    } else {
+
+        Write-Debug ('App Registration {0} already exists' -f $DisplayName)
+        $App = Get-AzureADApplication -SearchString $DisplayName
+        $SPForApp = Get-AzureADServicePrincipal -SearchString $App.AppId
+        # create a password (spn key)
+        $StartDate = Get-Date
+        $EndDate = $StartDate.AddDays($TokenLifetimeDays)
+        $AppPwd = New-AzureADApplicationPasswordCredential -ObjectId $App.ObjectId -CustomKeyIdentifier ((New-Guid).Guid.Replace("-","").subString(0, 30)) -StartDate $StartDate -EndDate $EndDate
+        Set-AzureADAppPermission -targetServicePrincipalName $TargetServicePrincipalName -appPermissionsRequired $AppPermissionsRequired -childApp $App -spForApp $SPForApp -ErrorAction SilentlyContinue
+        Set-AzureADApplicationLogo -ObjectId $App.ObjectId -FilePath $PNGLogoPath
+    
+    }
+
 
     [PSCustomObject]@{
         ClientID = $App.AppId
