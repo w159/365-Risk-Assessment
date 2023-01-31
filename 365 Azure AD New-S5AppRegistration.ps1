@@ -1,4 +1,4 @@
-﻿Function New-S5AppRegistration(){
+Function New-S5AppRegistration(){
 
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact='Medium')]
     Param(
@@ -66,7 +66,7 @@
         TenantId = (Get-AzureADCurrentSessionInfo).TenantId
     }
 
-    Write-Log -Type Warn -Message "Please close the Powershell session and reopen it. Otherwise the connection may fail."
-    Write-Log "End Script $Scriptname"
+    Write-Host -Type Warn -Message "Please close the Powershell session and reopen it. Otherwise the connection may fail."
+    Write-Host "End Script $Scriptname"
 
 }
