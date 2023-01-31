@@ -1,3 +1,4 @@
+function Connect-O365Services {
 <#
 
 Name:           Connect to all the Office 365 services using PowerShell
@@ -280,5 +281,7 @@ else {
         $ConnectedServices = "-"
     }
     Write-Host `n`nConnected Services $ConnectedServices -ForegroundColor DarkYellow 
+
+}
 
 }
