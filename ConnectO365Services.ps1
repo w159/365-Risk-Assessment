@@ -1,4 +1,6 @@
-﻿<#
+
+Function Connect-O365Services(){
+<#
 =============================================================================================
 Name:           Connect to all the Office 365 services using PowerShell
 Description:    This script automatically installs all the required modules(upon your confirmation) and connects to the services
@@ -349,4 +351,5 @@ else
   $ConnectedServices="-"
  }
  Write-Host `n`nConnected Services $ConnectedServices -ForegroundColor DarkYellow 
+}
 }
