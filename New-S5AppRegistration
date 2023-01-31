@@ -51,10 +51,10 @@ Function New-S5AppRegistration(){
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact='Medium')]
     Param(
         [int]
-        $TokenLifetimeDays = "1"
+        $TokenLifetimeHours = "24"
     )
     
-    Write-Host "Start Script $Scriptname" -ForegroundColor Red -BackgroundColor Yellow
+    Write-Host "Start Script $Scriptname" -ForegroundColor Yellow -BackgroundColor DarkRed
 
     $AzureAD = Get-Module -Name AzureAD
     if($AzureAD){
@@ -83,25 +83,26 @@ Function New-S5AppRegistration(){
             -ReplyUrls "urn:ietf:wg:oauth:2.0:oob" `
             -PublicClient $false
 
-        Write-Host ('Creating SPN for App Registration {0}' -f $DisplayName) -ForegroundColor Red -BackgroundColor Yellow
+        Write-Host ('Creating SPN for App Registration {0}' -f $DisplayName) -ForegroundColor Yellow -BackgroundColor DarkRed
 
         $StartDate = Get-Date
-        $EndDate = $StartDate.AddDays($TokenLifetimeDays)
+        $EndDate = $StartDate.AddHours($TokenLifetimeHours)
         $appPwd = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier ((New-Guid).Guid.Replace("-","").subString(0, 30)) -StartDate $StartDate -EndDate $EndDate
-
         $SPForApp = New-AzureADServicePrincipal -AppId $App.AppId -PasswordCredentials @($AppPwd)
-        Set-AzureADAppPermission -targetServicePrincipalName $TargetServicePrincipalName -appPermissionsRequired $AppPermissionsRequired -childApp $App -spForApp $SPForApp
-    
+        Set-AzureADAppPermission -targetServicePrincipalName $TargetServicePrincipalName -appPermissionsRequired $AppPermissionsRequired -childApp $App -spForApp $SPForA
+        Set-AzureADApplicationLogo -ObjectId $App.ObjectId -FilePath $PNGLogoPath
+
     } else {
 
-        Write-Host ('App Registration {0} already exists' -f $DisplayName) -ForegroundColor Red -BackgroundColor Yellow
+        Write-Host ('App Registration {0} already exists' -f $DisplayName) -ForegroundColor Yellow -BackgroundColor DarkRed
         $App = Get-AzureADApplication -SearchString $DisplayName
         $SPForApp = Get-AzureADServicePrincipal -SearchString $App.AppId
         # create a password (spn key)
         $StartDate = Get-Date
-        $EndDate = $StartDate.AddDays($TokenLifetimeDays)
+        $EndDate = $StartDate.AddHours($TokenLifetimeHours)
         $AppPwd = New-AzureADApplicationPasswordCredential -ObjectId $App.ObjectId -CustomKeyIdentifier ((New-Guid).Guid.Replace("-","").subString(0, 30)) -StartDate $StartDate -EndDate $EndDate
         Set-AzureADAppPermission -targetServicePrincipalName $TargetServicePrincipalName -appPermissionsRequired $AppPermissionsRequired -childApp $App -spForApp $SPForApp -ErrorAction SilentlyContinue
+        Set-AzureADApplicationLogo -ObjectId $App.ObjectId -FilePath $PNGLogoPath
     
     }
         $AppPermissionsRequired = @("AdvancedQuery.Read.All","Alert.Read.All","Ip.Read.All","Machine.Read.All", `
@@ -118,27 +119,23 @@ Function New-S5AppRegistration(){
             -ReplyUrls "urn:ietf:wg:oauth:2.0:oob" `
             -PublicClient $false
 
-        Write-Host ('Creating SPN for App Registration {0}' -f $DisplayName) -ForegroundColor Red -BackgroundColor Yellow
+        Write-Host ('Creating SPN for App Registration {0}' -f $DisplayName) -ForegroundColor Yellow -BackgroundColor DarkRed
 
         $StartDate = Get-Date
-        $EndDate = $StartDate.AddDays($TokenLifetimeDays)
+        $EndDate = $StartDate.AddHours($TokenLifetimeHours)
         $appPwd = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId -CustomKeyIdentifier ((New-Guid).Guid.Replace("-","").subString(0, 30)) -StartDate $StartDate -EndDate $EndDate
-
         $SPForApp = New-AzureADServicePrincipal -AppId $App.AppId -PasswordCredentials @($AppPwd)
-        Set-AzureADAppPermission -targetServicePrincipalName $TargetServicePrincipalName -appPermissionsRequired $AppPermissionsRequired -childApp $App -spForApp $SPForApp
-        Set-AzureADApplicationLogo -ObjectId $App.ObjectId -FilePath $PNGLogoPath
+     
     
     } else {
 
-        Write-Host ('App Registration {0} already exists' -f $DisplayName) -ForegroundColor Red -BackgroundColor Yellow
+        Write-Host ('App Registration {0} already exists' -f $DisplayName) -ForegroundColor Yellow -BackgroundColor DarkRed
         $App = Get-AzureADApplication -SearchString $DisplayName
         $SPForApp = Get-AzureADServicePrincipal -SearchString $App.AppId
         # create a password (spn key)
         $StartDate = Get-Date
-        $EndDate = $StartDate.AddDays($TokenLifetimeDays)
+        $EndDate = $StartDate.AddHours($TokenLifetimeHours)
         $AppPwd = New-AzureADApplicationPasswordCredential -ObjectId $App.ObjectId -CustomKeyIdentifier ((New-Guid).Guid.Replace("-","").subString(0, 30)) -StartDate $StartDate -EndDate $EndDate
-        Set-AzureADAppPermission -targetServicePrincipalName $TargetServicePrincipalName -appPermissionsRequired $AppPermissionsRequired -childApp $App -spForApp $SPForApp -ErrorAction SilentlyContinue
-        Set-AzureADApplicationLogo -ObjectId $App.ObjectId -FilePath $PNGLogoPath
     
     }
 
@@ -150,7 +147,7 @@ Function New-S5AppRegistration(){
         TenantId = (Get-AzureADCurrentSessionInfo).TenantId
     } | Format-List
 
-    Write-Host -Type Warn -Message "Please close the Powershell session and reopen it. Otherwise the connection may fail." -ForegroundColor Red -BackgroundColor Yellow
-    Write-Host "End Script $Scriptname" -ForegroundColor Red -BackgroundColor Yellow
+    Write-Host "Please close the Powershell session and reopen it. Otherwise the connection may fail." -ForegroundColor Yellow -BackgroundColor DarkRed
+    Write-Host "End Script $Scriptname" -ForegroundColor Yellow -BackgroundColor DarkRed
 
 }
