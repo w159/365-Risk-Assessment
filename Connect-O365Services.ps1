@@ -5,7 +5,6 @@ Name:           Connect to all the Office 365 services using PowerShell
 Description:    This script automatically installs all the required modules(upon your confirmation) and connects to the services
 
 #>
-    $MFA = $true
     Param
     (
         [Parameter(Mandatory = $false)]
@@ -15,7 +14,7 @@ Description:    This script automatically installs all the required modules(upon
         [string]$SharePointHostName,
         [Switch]$MFA
     )
- 
+    $MFA = $true
     #Disconnecting Sessions
     if ($Disconnect.IsPresent) {
         #Disconnect Exchange Online,Skype and Security & Compliance center session
