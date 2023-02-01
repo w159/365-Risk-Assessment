@@ -47,7 +47,7 @@ Description:    This script automatically installs all the required modules(upon
                     $Module = Get-InstalledModule -Name ExchangeOnlineManagement -MinimumVersion 2.0.3
                     if ($Module.count -eq 0) {
                         Write-Host Required Exchange Online'(EXO V2)' module is not available  -ForegroundColor yellow 
-                        $Confirm = Read-Host Are you sure you want to install module? [Y] Yes [N] No
+                        $Confirm = "Y"
                         if ($Confirm -match "[yY]") {
                             Install-Module ExchangeOnlineManagement
                             Import-Module ExchangeOnlineManagement
@@ -76,7 +76,7 @@ Description:    This script automatically installs all the required modules(upon
                     $Module = Get-Module -Name MSOnline -ListAvailable 
                     if ($Module.count -eq 0) {
                         Write-Host MSOnline module is not available  -ForegroundColor yellow 
-                        $Confirm = Read-Host Are you sure you want to install module? [Y] Yes [N] No
+                        $Confirm = "Y"
                         if ($Confirm -match "[yY]") {
                             Install-Module MSOnline
                             Import-Module MSOnline
@@ -111,7 +111,7 @@ Description:    This script automatically installs all the required modules(upon
                     $Module = Get-Module -Name AzureAD -ListAvailable 
                     if ($Module.count -eq 0) {
                         Write-Host AzureAD module is not available  -ForegroundColor yellow 
-                        $Confirm = Read-Host Are you sure you want to install module? [Y] Yes [N] No
+                        $Confirm = "Y"
                         if ($Confirm -match "[yY]") {
                             Install-Module AzureAD
                             Import-Module AzureAD
@@ -141,7 +141,7 @@ Description:    This script automatically installs all the required modules(upon
                     $Module = Get-Module -Name Microsoft.Online.SharePoint.PowerShell -ListAvailable 
                     if ($Module.count -eq 0) {
                         Write-Host SharePoint Online PowerShell module is not available  -ForegroundColor yellow 
-                        $Confirm = Read-Host Are you sure you want to install module? [Y] Yes [N] No
+                        $Confirm = "Y"
                         if ($Confirm -match "[yY]") {
                             Install-Module Microsoft.Online.SharePoint.PowerShell
                         }
@@ -211,7 +211,7 @@ Description:    This script automatically installs all the required modules(upon
                     $Module = Get-InstalledModule -Name ExchangeOnlineManagement -MinimumVersion 2.0.3
                     if ($Module.count -eq 0) {
                         Write-Host Exchange Online'(EXO V2)' module is not available  -ForegroundColor yellow 
-                        $Confirm = Read-Host Are you sure you want to install module? [Y] Yes [N] No
+                        $Confirm = "Y"
                         if ($Confirm -match "[yY]") {
                             Install-Module ExchangeOnlineManagement
                             Import-Module ExchangeOnlineManagement
@@ -242,7 +242,7 @@ Description:    This script automatically installs all the required modules(upon
                     $Module = Get-InstalledModule -Name MicrosoftTeams -MinimumVersion 4.0.0 
                     if ($Module.count -eq 0) {
                         Write-Host Required MicrosoftTeams module is not available  -ForegroundColor yellow 
-                        $Confirm = Read-Host Are you sure you want to install module? [Y] Yes [N] No
+                        $Confirm = "Y"
                         if ($Confirm -match "[yY]") {
                             Install-Module MicrosoftTeams -AllowClobber -Force
                         }
