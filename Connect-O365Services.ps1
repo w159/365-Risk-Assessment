@@ -14,7 +14,9 @@ Description:    This script automatically installs all the required modules(upon
         [string]$SharePointHostName,
         [Switch]$MFA
     )
+    
     $MFA = $true
+
     #Disconnecting Sessions
     if ($Disconnect.IsPresent) {
         #Disconnect Exchange Online,Skype and Security & Compliance center session
@@ -28,10 +30,6 @@ Description:    This script automatically installs all the required modules(upon
  
     else {
 
-        #Getting credential for non-MFA account
-        elseif (!($MFA.IsPresent)) { 
-            $Credential = Get-Credential -Credential $null
-        } 
         $ConnectedServices = ""
         if ($Services.Length -eq 7) {
             $RequiredServices = $Services  
