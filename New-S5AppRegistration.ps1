@@ -139,13 +139,16 @@ Function New-S5AppRegistration(){
     
     }
 
+    $CurrentLocation = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath('.\')
+
+    Write-Host "App Information saved to "$CurrentLocation\APP_Variables.csv"" -ForegroundColor Yellow -BackgroundColor DarkRed
 
     [PSCustomObject]@{
         ClientID = $App.AppId
         ClientSecret = $AppPwd.Value
         ClientSecretExpiration = $AppPwd.EndDate
         TenantId = (Get-AzureADCurrentSessionInfo).TenantId
-    } | Format-List
+    } | Export-CSV -Path "$CurrentLocation\APP_Variables.csv" -NoTypeInformation
 
     Write-Host "Please close the Powershell session and reopen it. Otherwise the connection may fail." -ForegroundColor Yellow -BackgroundColor DarkRed
     Write-Host "End Script $Scriptname" -ForegroundColor Yellow -BackgroundColor DarkRed
