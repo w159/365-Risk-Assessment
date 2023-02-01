@@ -151,3 +151,9 @@ Function New-S5AppRegistration(){
     Write-Host "End Script $Scriptname" -ForegroundColor Yellow -BackgroundColor DarkRed
 
 }
+
+
+$ClientID = $App.AppId
+$ClientSecret = $AppPwd.Value
+$ClientSecretExpiration = $AppPwd.EndDate
+$TenantId = (Get-AzureADCurrentSessionInfo).TenantId
