@@ -28,11 +28,6 @@ if ($Disconnect.IsPresent) {
  
 else {
 
-    if (($UserName -ne "") -and ($Password -ne "")) { 
-        $SecuredPassword = ConvertTo-SecureString -AsPlainText $Password -Force 
-        $Credential = New-Object System.Management.Automation.PSCredential $UserName, $SecuredPassword 
-    } 
-
     #Getting credential for non-MFA account
     elseif (!($MFA.IsPresent)) { 
         $Credential = Get-Credential -Credential $null
