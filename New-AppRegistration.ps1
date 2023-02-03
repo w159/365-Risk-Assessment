@@ -46,8 +46,7 @@ Function New-AppRegistration(){
                                 "DeviceManagementServiceConfig.Read.All","Directory.Read.All","Domain.Read.All","Organization.Read.All", `
                                 "Policy.Read.All","Policy.ReadWrite.AuthenticationMethod","Policy.ReadWrite.FeatureRollout","PrintConnector.Read.All", `
                                 "Printer.Read.All","PrinterShare.Read.All","PrintSettings.Read.All","PrivilegedAccess.Read.AzureAD","PrivilegedAccess.Read.AzureADGroup", `
-                                "PrivilegedAccess.Read.AzureResources","User.Read","IdentityProvider.Read.All","InformationProtectionPolicy.Read.All","Calendars.Read" `
-                                )
+                                "PrivilegedAccess.Read.AzureResources","User.Read","IdentityProvider.Read.All","InformationProtectionPolicy.Read.All","Calendars.Read")
 
   $GraphtargetServicePrincipalName = 'Microsoft Graph'
 
@@ -88,8 +87,7 @@ Function New-AppRegistration(){
   $DefenderappPermissionsRequired   = @("AdvancedQuery.Read.All","Alert.Read.All","Ip.Read.All","Machine.Read.All", `
                                         "RemediationTasks.Read.All","Score.Read.All","SecurityBaselinesAssessment.Read.All", `
                                         "SecurityConfiguration.Read.All","SecurityRecommendation.Read.All","Software.Read.All", `
-                                        "Url.Read.All","Vulnerability.Read.All" `
-                                        )
+                                        "Url.Read.All","Vulnerability.Read.All")
 
   $DefendertargetServicePrincipalName = 'WindowsDefenderATP'
 
